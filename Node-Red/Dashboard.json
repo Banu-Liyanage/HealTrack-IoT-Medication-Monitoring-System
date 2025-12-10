@@ -1,0 +1,391 @@
+[
+    {
+        "id": "tab_healtrack",
+        "type": "tab",
+        "label": "HealTrack Dashboard",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "grp_env",
+        "type": "ui_group",
+        "z": "tab_healtrack",
+        "name": "Patient Environment",
+        "tab": "ui_tab_healtrack",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "grp_meds",
+        "type": "ui_group",
+        "z": "tab_healtrack",
+        "name": "Medication Tracking",
+        "tab": "ui_tab_healtrack",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "grp_history",
+        "type": "ui_group",
+        "z": "tab_healtrack",
+        "name": "Usage Analytics",
+        "tab": "ui_tab_healtrack",
+        "order": 3,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "mqtt_temp",
+        "type": "mqtt in",
+        "z": "tab_healtrack",
+        "name": "",
+        "topic": "medibox/recent_temperature",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "broker_emqx",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "gauge_temp"
+            ]
+        ]
+    },
+    {
+        "id": "gauge_temp",
+        "type": "ui_gauge",
+        "z": "tab_healtrack",
+        "name": "",
+        "group": "grp_env",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "Temperature",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 450,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "mqtt_hum",
+        "type": "mqtt in",
+        "z": "tab_healtrack",
+        "name": "",
+        "topic": "medibox/recent_humidity",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "broker_emqx",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 160,
+        "wires": [
+            [
+                "gauge_hum"
+            ]
+        ]
+    },
+    {
+        "id": "gauge_hum",
+        "type": "ui_gauge",
+        "z": "tab_healtrack",
+        "name": "",
+        "group": "grp_env",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "Humidity",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#0080ff",
+            "#0062c4",
+            "#004182"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 440,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "mqtt_weight",
+        "type": "mqtt in",
+        "z": "tab_healtrack",
+        "name": "",
+        "topic": "medibox/recent_weight",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "broker_emqx",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 260,
+        "wires": [
+            [
+                "gauge_weight",
+                "chart_weight"
+            ]
+        ]
+    },
+    {
+        "id": "gauge_weight",
+        "type": "ui_gauge",
+        "z": "tab_healtrack",
+        "name": "",
+        "group": "grp_meds",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Current Weight",
+        "label": "grams",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "500",
+        "colors": [
+            "#ca3838",
+            "#e6e600",
+            "#00b500"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 460,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "chart_weight",
+        "type": "ui_chart",
+        "z": "tab_healtrack",
+        "name": "",
+        "group": "grp_history",
+        "order": 1,
+        "width": "12",
+        "height": "6",
+        "label": "Medication Weight History",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "500",
+        "removeOlder": "10",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "60",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 490,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mqtt_status",
+        "type": "mqtt in",
+        "z": "tab_healtrack",
+        "name": "",
+        "topic": "medibox/med_status",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "broker_emqx",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "func_status_color"
+            ]
+        ]
+    },
+    {
+        "id": "func_status_color",
+        "type": "function",
+        "z": "tab_healtrack",
+        "name": "Style Status Text",
+        "func": "// Make it look professional with dynamic HTML\nif (msg.payload == \"TAKEN\") {\n    msg.payload = '<i class=\"fa fa-check-circle\" style=\"color:#4CAF50\"></i> <span style=\"color:#4CAF50; font-weight:bold\">MEDICINE TAKEN</span>';\n} else if (msg.payload == \"MISSED\") {\n    msg.payload = '<i class=\"fa fa-exclamation-triangle\" style=\"color:#F44336\"></i> <span style=\"color:#F44336; font-weight:bold\">DOSE MISSED</span>';\n} else {\n    msg.payload = '<span style=\"color:#FFC107\">' + msg.payload + '</span>';\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 400,
+        "wires": [
+            [
+                "text_status"
+            ]
+        ]
+    },
+    {
+        "id": "text_status",
+        "type": "ui_text",
+        "z": "tab_healtrack",
+        "name": "",
+        "group": "grp_meds",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Current Status:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "x": 540,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "mqtt_sys_status",
+        "type": "mqtt in",
+        "z": "tab_healtrack",
+        "name": "",
+        "topic": "medibox/status",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "broker_emqx",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 480,
+        "wires": [
+            [
+                "toast_alert",
+                "func_alert_sound"
+            ]
+        ]
+    },
+    {
+        "id": "toast_alert",
+        "type": "ui_toast",
+        "z": "tab_healtrack",
+        "position": "top right",
+        "displayTime": "5",
+        "highlight": "",
+        "sendOnBlur": true,
+        "outputs": 0,
+        "topic": "HealTrack Alert",
+        "name": "",
+        "x": 450,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "func_alert_sound",
+        "type": "function",
+        "z": "tab_healtrack",
+        "name": "Prepare Audio",
+        "func": "if(msg.payload == \"ALARM_ACTIVE\"){\n    msg.payload = \"ALARM TRIGGERED: Patient must take medicine!\";\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 520,
+        "wires": [
+            [
+                "ui_audio_alert"
+            ]
+        ]
+    },
+    {
+        "id": "ui_audio_alert",
+        "type": "ui_audio",
+        "z": "tab_healtrack",
+        "name": "",
+        "group": "grp_meds",
+        "voice": "",
+        "always": "",
+        "x": 460,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "ui_tab_healtrack",
+        "type": "ui_tab",
+        "name": "HealTrack",
+        "icon": "fa-heartbeat",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "broker_emqx",
+        "type": "mqtt-broker",
+        "name": "EMQX Public",
+        "broker": "broker.emqx.io",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    }
+]

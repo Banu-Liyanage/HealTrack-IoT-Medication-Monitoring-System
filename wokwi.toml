@@ -1,0 +1,5 @@
+[wokwi]
+version = 1
+board = "esp32dev"
+# your board type
+firmware = "sketch.ino"

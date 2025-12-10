@@ -24,6 +24,11 @@ float SensorManager::readTemperature() {
     return isnan(t) ? 0.0 : t;
 }
 
+float SensorManager::readHumidity() {
+    float h = _dht->readHumidity();
+    return isnan(h) ? 0.0 : h;
+}
+
 float SensorManager::readLightIntensity() {
     int raw = analogRead(_ldrPin);
     return (float)raw / 4063.0;

@@ -21,6 +21,7 @@ public:
     // Methods
     void begin();
     float readTemperature();
+    float readHumidity();
     float readLightIntensity();
     float readWeight();
 };

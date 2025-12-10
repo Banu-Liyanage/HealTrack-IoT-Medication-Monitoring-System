@@ -3,6 +3,8 @@
 #include <PubSubClient.h>
 #include "Sensors.h"    // Include our new header
 #include "Actuators.h"  // Include our new header
+#include "Buzzer.h"    
+#include "time.h"
 
 // --- Configuration Struct (Holds all adjustable settings) ---
 struct SystemConfig {

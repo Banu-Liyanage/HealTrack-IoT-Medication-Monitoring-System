@@ -280,7 +280,6 @@
         "order": 2,
         "width": 0,
         "height": 0,
-        "name": "",
         "label": "Current Status:",
         "format": "{{msg.payload}}",
         "layout": "row-spread",

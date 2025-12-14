@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealTrack Pro | Patient Monitoring</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #0ea5e9; /* Sky Blue */
+            --success: #10b981; /* Emerald */
+            --danger: #ef4444; /* Red */
+            --warning: #f59e0b; /* Amber */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100vh;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            position: fixed;
+            width: 250px;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+            padding: 0 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-link {
+            color: var(--text-secondary);
+            padding: 12px 20px;
+            transition: 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.05);
+            border-left-color: var(--accent);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        /* Top Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .connection-badge {
+            font-size: 0.85rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+        }
+        .connection-badge.connected { color: var(--success); background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); }
+        .connection-badge.disconnected { color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); }
+
+        /* Dashboard Cards */
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .stat-value { font-size: 2rem; font-weight: 600; margin-bottom: 5px; }
+        .stat-label { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Specific Card Colors */
+        .icon-temp { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .icon-hum { background: rgba(14, 165, 233, 0.1); color: var(--accent); }
+        .icon-weight { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: 20px;
+            height: 350px;
+        }
+
+        /* Status & Alarm Area */
+        .status-alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .alert-alarm { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid var(--danger); animation: pulse 1.5s infinite; }
+        .alert-taken { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid var(--success); }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        /* Form Inputs */
+        .form-control-dark {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .form-control-dark:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 0; padding: 0; overflow: hidden; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-heart-pulse"></i> HealTrack
+        </div>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="#"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+            <a class="nav-link" href="#"><i class="fa-solid fa-calendar-check me-2"></i> History</a>
+            <a class="nav-link" href="#"><i class="fa-solid fa-user-doctor me-2"></i> Patients</a>
+            <a class="nav-link" href="#"><i class="fa-solid fa-gear me-2"></i> Settings</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="header">
+            <div>
+                <h4>Patient Dashboard</h4>
+                <div class="text-muted">ID: #ESP32-8821 | Status: Monitoring</div>
+            </div>
+            <div id="conn-status" class="connection-badge disconnected">
+                <i class="fa-solid fa-wifi"></i> Disconnected
+            </div>
+        </div>
+
+        <div id="status-alert-box" class="status-alert"></div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="stat-label">Environment</div>
+                            <div class="stat-value" id="val-temp">--</div>
+                            <div class="text-muted">Temperature (°C)</div>
+                        </div>
+                        <div class="stat-icon icon-temp"><i class="fa-solid fa-temperature-half"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="stat-label">Environment</div>
+                            <div class="stat-value" id="val-hum">--</div>
+                            <div class="text-muted">Humidity (%)</div>
+                        </div>
+                        <div class="stat-icon icon-hum"><i class="fa-solid fa-droplet"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="stat-label">Medication</div>
+                            <div class="stat-value" id="val-weight">--</div>
+                            <div class="text-muted">Remaining (grams)</div>
+                        </div>
+                        <div class="stat-icon icon-weight"><i class="fa-solid fa-scale-balanced"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-8">
+                <div class="chart-container">
+                    <h6 class="text-muted mb-3">Live Weight Analytics</h6>
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="stat-card mt-3 mt-lg-0" style="height: auto;">
+                    <h5 class="mb-4"><i class="fa-solid fa-clock-rotate-left"></i> Set Reminder</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Hour (24h)</label>
+                        <input type="number" id="inp-hour" class="form-control form-control-dark" value="8" min="0" max="23">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Minute</label>
+                        <input type="number" id="inp-min" class="form-control form-control-dark" value="0" min="0" max="59">
+                    </div>
+
+                    <button onclick="sendAlarm()" class="btn btn-primary w-100 py-2">
+                        <i class="fa-solid fa-bell"></i> Update Alarm
+                    </button>
+                    
+                    <div id="cmd-feedback" class="text-center mt-2 text-success" style="font-size: 0.85rem; opacity:0;">
+                        Command Sent!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MQTT SETUP ---
+        const broker = "broker.emqx.io";
+        const port = 8083; // WebSocket Port
+        const clientID = "healtrack_pro_" + parseInt(Math.random() * 100000);
+        const client = new Paho.MQTT.Client(broker, port, clientID);
+
+        // --- CHART SETUP ---
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        const weightChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill(''), // Placeholder labels
+                datasets: [{
+                    label: 'Pill Weight (g)',
+                    data: Array(20).fill(0),
+                    borderColor: '#0ea5e9',
+                    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { display: false }
+                }
+            }
+        });
+
+        // --- CONNECTION HANDLERS ---
+        client.onConnectionLost = (responseObject) => {
+            console.log("Connection Lost: " + responseObject.errorMessage);
+            const statusEl = document.getElementById("conn-status");
+            statusEl.className = "connection-badge disconnected";
+            statusEl.innerHTML = '<i class="fa-solid fa-wifi"></i> Disconnected';
+        };
+
+        client.onMessageArrived = (message) => {
+            const topic = message.destinationName;
+            const payload = message.payloadString;
+            console.log("Msg: " + topic + " val: " + payload);
+
+            // Update UI Elements
+            if(topic === "HealTrack/temp") document.getElementById("val-temp").innerText = payload + "°";
+            if(topic === "HealTrack/humidity") document.getElementById("val-hum").innerText = payload + "%";
+            
+            // Weight Logic & Chart Update
+            if(topic === "HealTrack/weight") {
+                document.getElementById("val-weight").innerText = payload;
+                
+                // Update Chart
+                const currentData = weightChart.data.datasets[0].data;
+                currentData.shift(); // Remove old
+                currentData.push(parseFloat(payload)); // Add new
+                weightChart.update();
+            }
+
+            // Alerts Logic
+            const alertBox = document.getElementById("status-alert-box");
+            if(topic === "HealTrack/status" && payload === "ALARM") {
+                alertBox.style.display = "block";
+                alertBox.className = "status-alert alert-alarm";
+                alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-2"></i> MEDICATION ALARM ACTIVE';
+            }
+            if(topic === "HealTrack/med_status") {
+                alertBox.style.display = "block";
+                if(payload === "TAKEN") {
+                    alertBox.className = "status-alert alert-taken";
+                    alertBox.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i> Medicine Taken Successfully';
+                } else {
+                    alertBox.className = "status-alert alert-alarm";
+                    alertBox.innerHTML = '<i class="fa-solid fa-circle-xmark me-2"></i> Dose Missed';
+                }
+                // Hide after 5 seconds
+                setTimeout(() => { alertBox.style.display = "none"; }, 5000);
+            }
+        };
+
+        // Connect
+        client.connect({
+            onSuccess: () => {
+                console.log("MQTT Connected");
+                const statusEl = document.getElementById("conn-status");
+                statusEl.className = "connection-badge connected";
+                statusEl.innerHTML = '<i class="fa-solid fa-link"></i> Live Connected';
+                client.subscribe("HealTrack/#");
+            },
+            useSSL: true // Required for EMQX WebSocket
+        });
+
+        // --- CONTROLS ---
+        function sendAlarm() {
+            const h = document.getElementById("inp-hour").value;
+            const m = document.getElementById("inp-min").value;
+            const payload = h + ":" + m;
+            
+            const message = new Paho.MQTT.Message(payload);
+            message.destinationName = "HealTrack/inputs/set_alarm";
+            client.send(message);
+
+            // Show feedback
+            const fb = document.getElementById("cmd-feedback");
+            fb.style.opacity = "1";
+            setTimeout(() => { fb.style.opacity = "0"; }, 2000);
+        }
+    </script>
+</body>
+</html>

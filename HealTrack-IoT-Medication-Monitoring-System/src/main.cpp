@@ -343,11 +343,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
             int newH = hourStr.toInt();
             int newM = minStr.toInt();
 
-            // Update Alarm 0 (Primary Alarm)
-            alarms[0].h = newH;
-            alarms[0].m = newM;
-            alarms[0].en = true;
-            alarms[0].trig = false;
+            // FIX: Use 'hour', 'minute', 'enabled', 'triggered'
+            alarms[0].hour = newH;
+            alarms[0].minute = newM;
+            alarms[0].enabled = true;
+            alarms[0].triggered = false;
 
             Serial.printf("Remote: Alarm set to %d:%02d\n", newH, newM);
             

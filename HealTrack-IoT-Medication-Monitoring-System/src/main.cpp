@@ -323,3 +323,36 @@ void reconnectMQTT() {
         }
     }
 }
+// --- Callback for Remote Control ---
+void callback(char* topic, byte* payload, unsigned int length) {
+    char message[length + 1];
+    memcpy(message, payload, length);
+    message[length] = '\0';
+    String msgString = String(message);
+
+    Serial.printf("Received [%s]: %s\n", topic, message);
+
+    // Check if the message is for setting the alarm
+    if (String(topic) == "HealTrack/inputs/set_alarm") {
+        // Expected format "HH:MM" e.g., "14:30"
+        int separatorIndex = msgString.indexOf(':');
+        if (separatorIndex != -1) {
+            String hourStr = msgString.substring(0, separatorIndex);
+            String minStr = msgString.substring(separatorIndex + 1);
+
+            int newH = hourStr.toInt();
+            int newM = minStr.toInt();
+
+            // Update Alarm 0 (Primary Alarm)
+            alarms[0].h = newH;
+            alarms[0].m = newM;
+            alarms[0].en = true;
+            alarms[0].trig = false;
+
+            Serial.printf("Remote: Alarm set to %d:%02d\n", newH, newM);
+            
+            // Confirm back to Dashboard
+            client.publish("HealTrack/status", "ALARM UPDATED");
+        }
+    }
+}

@@ -22,7 +22,9 @@
 #define BTN_OK 25       // Changed from 33 to avoid conflict with LDR
 #define LED_ALARM 15
 #define LED_WARN 2
-
+const float GAMMA = 0.7;
+const float RL10 = 50;
+const float voltage = 3.3;
 // --- OBJECTS ---
 SensorManager sensors(DHT_PIN, LDR_PIN, LOAD_CELL_DT_PIN, LOAD_CELL_SCK_PIN);
 ServoController servoCtrl(SERVO_PIN);
@@ -66,9 +68,12 @@ void setupWiFi();
 void reconnectMQTT();
 void checkMedicationRoutine();
 void runMenu();
-int waitForButton();
+int  waitForButton();
 void setTimezoneMenu();
 void setAlarmMenu(int alarmIndex);
+void callback(char* topic, byte* payload, unsigned int length);
+void LDR();
+
 
 void setup() {
     Serial.begin(115200);
@@ -80,6 +85,7 @@ void setup() {
     pinMode(BTN_OK, INPUT);
     pinMode(LED_ALARM, OUTPUT);
     pinMode(LED_WARN, OUTPUT);
+    pinMode(LDR_PIN, INPUT);
 
     sensors.begin();
     servoCtrl.begin();
@@ -111,7 +117,7 @@ void loop() {
 
     // 3. Alarm Logic (Merged)
     checkMedicationRoutine();
-
+    LDR();
     // 4. Dashboard & Sensors (Normal Mode)
     unsigned long currentMillis = millis();
     if (currentMillis - lastSamplingTime >= sysConfig.samplingInterval) {
@@ -191,7 +197,7 @@ void checkMedicationRoutine() {
                     actionTaken = true;
                 }
 
-                // TIMEOUT (e.g., 30 seconds) - Simulate patient taking meds
+                // TIMEOUT - Simulate patient taking meds
                 if(millis() - alarmStart > 30000) {
                      actionTaken = true; // Stop ringing eventually
                 }
@@ -199,9 +205,10 @@ void checkMedicationRoutine() {
 
             // 4. Close Box & Check Weight
             digitalWrite(LED_ALARM, LOW);
-            servoCtrl.setAngle(sysConfig.minAngle);
+            //servoCtrl.setAngle(sysConfig.minAngle);
             float weightAfter = sensors.readWeight();
-
+            //LDR();
+            // 5. Determine Taken or Missed
             if(weightBefore - weightAfter > 2.0) {
                 client.publish("HealTrack/med_status", "TAKEN");
                 Serial.println("Meds Taken");
@@ -343,7 +350,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
             int newH = hourStr.toInt();
             int newM = minStr.toInt();
 
-            // FIX: Use 'hour', 'minute', 'enabled', 'triggered'
+            
             alarms[0].hour = newH;
             alarms[0].minute = newM;
             alarms[0].enabled = true;
@@ -356,3 +363,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
         }
     }
 }
+void LDR(){
+    analogRead(LDR_PIN);
+    float LDR_voltage = analogRead(LDR_PIN) * (3.3 / 4095.0);
+    float resistance = 2000 * voltage / (1 - voltage / 5);
+    float lux = pow(RL10 * 1e3 * pow(10, GAMMA) / resistance, (1 / GAMMA));
+    Serial.print("LDR Light Intensity: ");
+    Serial.print(lux);
+    Serial.println(" lux");
+
+  }

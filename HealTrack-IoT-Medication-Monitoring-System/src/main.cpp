@@ -9,7 +9,7 @@
 
 // --- PIN DEFINITIONS ---
 #define DHT_PIN 12
-#define LDR_PIN 33          // Pin 33 is ADC1 (Safe for WiFi)
+#define LDR_PIN 33          
 #define LOAD_CELL_DT_PIN 13
 #define LOAD_CELL_SCK_PIN 14
 #define SERVO_PIN 27
@@ -19,7 +19,7 @@
 #define BTN_UP 35
 #define BTN_DOWN 32
 #define BTN_CANCEL 34
-#define BTN_OK 25           // Digital Pin (Safe)
+#define BTN_OK 25           
 #define LED_ALARM 15
 #define LED_WARN 2
 
@@ -97,7 +97,7 @@ void setup() {
     // Init Network
     setupWiFi();
     client.setServer("broker.emqx.io", 1883);
-    client.setCallback(callback); // IMPORTANT: Register the callback
+    client.setCallback(callback); 
     
     // Init Time
     configTime(sysConfig.utcOffset, 0, "pool.ntp.org");
@@ -110,7 +110,7 @@ void loop() {
     if (!client.connected()) reconnectMQTT();
     client.loop();
 
-    // 2. Button Check (Enter Menu?)
+    // 2. Button Check
     if (digitalRead(BTN_OK) == LOW) {
         delay(200); 
         runMenu();  
@@ -340,7 +340,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
 }
 
-// Corrected LDR Debug Function
+
 void readLDRDebug() {
     int analogValue = analogRead(LDR_PIN);
     
@@ -354,7 +354,7 @@ void readLDRDebug() {
         return;
     }
     
-    // 3. Calculate Resistance using READ voltage, NOT global constant
+    
     float resistance = 2000 * voltageRead / (1 - voltageRead / 3.3);
     
     // 4. Calculate Lux
